@@ -152,6 +152,10 @@ static void calculate_visibility(struct Context *ctx, int *max_depth)
   int hide_top_limited = HideTopLimited && !HideLimited;
   int depth = 0;
 
+  /* avoid a SEGV trying to walk a NULL tree */
+  if (!tree)
+   return;
+
   /* we walk each level backwards to make it easier to compute next_subtree_visible */
   while (tree->next)
     tree = tree->next;
