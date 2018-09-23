@@ -198,13 +198,31 @@ FILE *mutt_bcache_put(struct BodyCache *bcache, const char *id)
 {
   char path[PATH_MAX];
   struct stat sb;
+  size_t path_sz;
+  int path_ret;
 
   if (!id || !*id || !bcache)
     return NULL;
 
-  if (snprintf(path, sizeof(path), "%s%s%s", bcache->path, id, ".tmp") >= sizeof(path))
+  /* calculate size of final path */
+  path_ret = snprintf(NULL, 0, "%s%s%s", bcache->path, id, ".tmp");
+  if (path_ret < 0)
+  {
+    mutt_error(_("Error calculating final path size: %s%s%s"), bcache->path, id, ".tmp");
+    return NULL;
+  }
+
+  path_sz = (size_t)path_ret;
+  if (path_sz >= sizeof(path))
   {
     mutt_error(_("Path too long: %s%s%s"), bcache->path, id, ".tmp");
+    return NULL;
+  }
+
+  path_ret = snprintf(path, path_sz, "%s%s%s", bcache->path, id, ".tmp");
+  if (path_ret < 0)
+  {
+    mutt_error(_("Error creating temporary path: %s%s%s"), bcache->path, id, ".tmp");
     return NULL;
   }
 
